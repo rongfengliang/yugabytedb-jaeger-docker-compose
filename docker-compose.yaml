@@ -1,0 +1,64 @@
+version: '2'
+services:
+  jaeger:
+    image: jaegertracing/all-in-one:1.13
+    environment:
+      - COLLECTOR_ZIPKIN_HTTP_PORT=9411
+      - CASSANDRA_SERVERS=yb-tserver,yb-tserver2
+      - SPAN_STORAGE_TYPE=cassandra
+    ports:
+      - "9411:9411"
+      - "5775:5775/udp"
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+      - "16686:16686"
+  yb-master:
+      image: yugabytedb/yugabyte:latest
+      container_name: yb-master-n1
+      command: [ "/home/yugabyte/bin/yb-master", 
+                "--fs_data_dirs=/mnt/disk0,/mnt/disk1", 
+                "--master_addresses=yb-master-n1:7100", 
+                "--replication_factor=1"]
+      ports:
+      - "7000:7000"
+      environment:
+        SERVICE_7000_NAME: yb-master
+
+  yb-tserver:
+      image: yugabytedb/yugabyte:latest
+      container_name: yb-tserver-n1
+      command: [ "/home/yugabyte/bin/yb-tserver", 
+                "--fs_data_dirs=/mnt/disk0,/mnt/disk1",
+                "--start_pgsql_proxy", 
+                "--tserver_master_addrs=yb-master-n1:7100"]
+      ports:
+      - "9042:9042"
+      - "6379:6379"
+      - "5433:5433"
+      - "9000:9000"
+      environment:
+        SERVICE_5433_NAME: ysql
+        SERVICE_9042_NAME: ycql
+        SERVICE_6379_NAME: yedis
+        SERVICE_9000_NAME: yb-tserver
+      depends_on:
+      - yb-master
+  yb-tserver2:
+      image: yugabytedb/yugabyte:latest
+      container_name: yb-tserver-n2
+      command: [ "/home/yugabyte/bin/yb-tserver", 
+                "--fs_data_dirs=/mnt/disk0,/mnt/disk1",
+                "--start_pgsql_proxy", 
+                "--tserver_master_addrs=yb-master-n1:7100"]
+      ports:
+      - "9043:9042"
+      - "6380:6379"
+      - "5434:5433"
+      - "9001:9000"
+      environment:
+        SERVICE_5433_NAME: ysql
+        SERVICE_9042_NAME: ycql
+        SERVICE_6379_NAME: yedis
+        SERVICE_9000_NAME: yb-tserver
+      depends_on:
+      - yb-master
