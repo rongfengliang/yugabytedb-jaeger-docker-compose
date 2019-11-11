@@ -1,0 +1,62 @@
+version: '2'
+services:
+  cdc-connector:
+      build: ./
+  graphql-engine:
+    image: hasura/graphql-engine:v1.0.0-beta.6
+    ports:
+    - "8080:8080"
+    environment:
+      HASURA_GRAPHQL_ENABLE_TELEMETRY: "false"
+      HASURA_GRAPHQL_DATABASE_URL: postgres://postgres@yb-tserver2:5433/postgres
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "true" # set to "false" to disable console
+      HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
+  yb-master:
+      image: yugabytedb/yugabyte:latest
+      container_name: yb-master-n1
+      command: [ "/home/yugabyte/bin/yb-master", 
+                "--fs_data_dirs=/mnt/disk0,/mnt/disk1", 
+                "--master_addresses=yb-master-n1:7100", 
+                "--replication_factor=1"]
+      ports:
+      - "7000:7000"
+      environment:
+        SERVICE_7000_NAME: yb-master
+  yb-tserver:
+      image: yugabytedb/yugabyte:latest
+      container_name: yb-tserver-n1
+      command: [ "/home/yugabyte/bin/yb-tserver", 
+                "--fs_data_dirs=/mnt/disk0,/mnt/disk1",
+                "--start_pgsql_proxy", 
+                "--tserver_master_addrs=yb-master-n1:7100"]
+      ports:
+      - "9042:9042"
+      - "6379:6379"
+      - "5433:5433"
+      - "9000:9000"
+      environment:
+        SERVICE_5433_NAME: ysql
+        SERVICE_9042_NAME: ycql
+        SERVICE_6379_NAME: yedis
+        SERVICE_9000_NAME: yb-tserver
+      depends_on:
+      - yb-master
+  yb-tserver2:
+      image: yugabytedb/yugabyte:latest
+      container_name: yb-tserver-n2
+      command: [ "/home/yugabyte/bin/yb-tserver", 
+                "--fs_data_dirs=/mnt/disk0,/mnt/disk1",
+                "--start_pgsql_proxy", 
+                "--tserver_master_addrs=yb-master-n1:7100"]
+      ports:
+      - "9043:9042"
+      - "6380:6379"
+      - "5434:5433"
+      - "9001:9000"
+      environment:
+        SERVICE_5433_NAME: ysql
+        SERVICE_9042_NAME: ycql
+        SERVICE_6379_NAME: yedis
+        SERVICE_9000_NAME: yb-tserver
+      depends_on:
+      - yb-master

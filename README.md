@@ -17,3 +17,39 @@ docker-compose up -d
 ```code
 cat schema.sql | cqlsh
 ```
+
+
+* init ysql
+
+```code
+docker-compose exec yb-master bash -c "YB_ENABLED_IN_POSTGRES=1 FLAGS_pggate_master_addresses=yb-master-n1:7100 /home/yugabyte/postgres/bin/initdb -D /tmp/yb_pg_initdb_tmp_data_dir -U postgres"
+```
+
+## works  with plv8  extension
+
+> not good current not support `CREATE LANGUAGE`
+
+*  copy static library && control files (include sql  fieles)
+
+```code
+pg-config =  /home/yugabyte/postgres/bin
+alias yb_pg_config=/home/yugabyte/postgres/bin/pg_config
+
+share library:
+
+ls "$(yb_pg_config --pkglibdir)"
+
+
+cp /home/yugabyte/postgres/lib 
+
+docker cp plv8/plv8-2.3.12.so   4ae93384626c:/home/yugabyte/postgres/lib
+docker cp plv8/plv8-2.3.12.so   0179422bab26:/home/yugabyte/postgres/lib
+
+
+extension:
+ls "$(yb_pg_config --sharedir)"/extension/
+cp /home/yugabyte/postgres/share/extension/
+
+docker cp plv8/sql   4ae93384626c:/home/yugabyte/postgres/share/extension
+docker cp plv8/sql   0179422bab26:/home/yugabyte/postgres/share/extension
+```
