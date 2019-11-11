@@ -42,14 +42,33 @@ ls "$(yb_pg_config --pkglibdir)"
 
 cp /home/yugabyte/postgres/lib 
 
-docker cp plv8/plv8-2.3.12.so   4ae93384626c:/home/yugabyte/postgres/lib
-docker cp plv8/plv8-2.3.12.so   0179422bab26:/home/yugabyte/postgres/lib
+docker cp plv8/plv8-2.3.12.so   yb-tserver-n1:/home/yugabyte/postgres/lib
+docker cp plv8/plv8-2.3.12.so   yb-tserver-n2:/home/yugabyte/postgres/lib
 
 
 extension:
 ls "$(yb_pg_config --sharedir)"/extension/
 cp /home/yugabyte/postgres/share/extension/
 
-docker cp plv8/sql   4ae93384626c:/home/yugabyte/postgres/share/extension
-docker cp plv8/sql   0179422bab26:/home/yugabyte/postgres/share/extension
+docker cp plv8/sql/.   yb-tserver-n1:/home/yugabyte/postgres/share/extension
+docker cp plv8/sql/.   yb-tserver-n2:/home/yugabyte/postgres/share/extension
+```
+
+## work with pg_hashids (it works)
+
+* copy extension
+
+```code
+cp /home/yugabyte/postgres/lib 
+
+docker cp hashids/pg_hashids.so   yb-tserver-n1:/home/yugabyte/postgres/lib
+docker cp hashids/pg_hashids.so   yb-tserver-n2:/home/yugabyte/postgres/lib
+
+
+extension:
+ls "$(yb_pg_config --sharedir)"/extension/
+cp /home/yugabyte/postgres/share/extension/
+
+docker cp hashids/extension/.  yb-tserver-n1:/home/yugabyte/postgres/share/extension
+docker cp hashids/extension/.   yb-tserver-n2:/home/yugabyte/postgres/share/extension
 ```
