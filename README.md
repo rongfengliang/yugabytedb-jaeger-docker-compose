@@ -70,5 +70,5 @@ ls "$(yb_pg_config --sharedir)"/extension/
 cp /home/yugabyte/postgres/share/extension/
 
 docker cp hashids/extension/.  yb-tserver-n1:/home/yugabyte/postgres/share/extension
-docker cp hashids/extension/.   yb-tserver-n2:/home/yugabyte/postgres/share/extension
+docker cp hashids/extension/.  yb-tserver-n2:/home/yugabyte/postgres/share/extension
 ```
